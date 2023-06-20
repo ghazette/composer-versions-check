@@ -10,45 +10,26 @@ use Composer\Package\PackageInterface;
  */
 final class OutdatedPackage
 {
-    /**
-     * @var PackageInterface
-     */
-    private $actual;
+    private PackageInterface $actual;
+    private PackageInterface $last;
+    private array $links = [];
 
-    /**
-     * @var PackageInterface
-     */
-    private $last;
-
-    /**
-     * @var Link[]
-     */
-    private $links = array();
-
-    /**
-     * @param Link[] $links
-     */
-    public function __construct(PackageInterface $actual, PackageInterface $last, array $links = null)
-    {
+    public function __construct(
+        PackageInterface $actual,
+        PackageInterface $last,
+        ?array $links = null
+    ) {
         $this->actual = $actual;
         $this->last = $last;
-        if (null !== $links) {
-            $this->links = $links;
-        }
+        $this->links = $links ?? [];
     }
 
-    /**
-     * @return PackageInterface
-     */
-    public function getActual()
+    public function getActual(): PackageInterface
     {
         return $this->actual;
     }
 
-    /**
-     * @return PackageInterface
-     */
-    public function getLast()
+    public function getLast(): PackageInterface
     {
         return $this->last;
     }
@@ -56,7 +37,7 @@ final class OutdatedPackage
     /**
      * @return Link[]
      */
-    public function getLinks()
+    public function getLinks(): array
     {
         return $this->links;
     }

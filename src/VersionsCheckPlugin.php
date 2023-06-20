@@ -18,35 +18,13 @@ use Composer\Script\ScriptEvents;
  */
 final class VersionsCheckPlugin implements PluginInterface, EventSubscriberInterface
 {
-    /**
-     * @var Composer
-     */
-    private $composer;
+    private Composer $composer;
+    private IOInterface $io;
+    private VersionsCheck $versionsCheck;
+    private bool $preferLowest;
+    private array $options = [];
 
-    /**
-     * @var IOInterface
-     */
-    private $io;
-
-    /**
-     * @var VersionsCheck
-     */
-    private $versionsCheck;
-
-    /**
-     * @var bool
-     */
-    private $preferLowest;
-
-    /**
-     * @var array
-     */
-    private $options = array();
-
-    /**
-     * {@inheritdoc}
-     */
-    public function activate(Composer $composer, IOInterface $io)
+    public function activate(Composer $composer, IOInterface $io): void
     {
         $this->composer = $composer;
         $this->io = $io;
@@ -54,44 +32,35 @@ final class VersionsCheckPlugin implements PluginInterface, EventSubscriberInter
         $this->options = $this->resolveOptions();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function deactivate(Composer $composer, IOInterface $io)
+    public function deactivate(Composer $composer, IOInterface $io): void
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function uninstall(Composer $composer, IOInterface $io)
+    public function uninstall(Composer $composer, IOInterface $io): void
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
-        return array(
-            PluginEvents::COMMAND => array(
-                array('command'),
-            ),
-            ScriptEvents::POST_UPDATE_CMD => array(
-                array('postUpdate', -100),
-            ),
-        );
+        return [
+            PluginEvents::COMMAND => [
+                ['command'],
+            ],
+            ScriptEvents::POST_UPDATE_CMD => [
+                ['postUpdate', -100],
+            ],
+        ];
     }
 
-    public function command(CommandEvent $event)
+    public function command(CommandEvent $event): void
     {
         $input = $event->getInput();
-        $this->preferLowest = $input->hasOption('prefer-lowest') && true === $input->getOption('prefer-lowest');
+        $this->preferLowest = $input->hasOption('prefer-lowest') && $input->getOption('prefer-lowest');
     }
 
-    public function postUpdate(Event $event)
+    public function postUpdate(Event $event): void
     {
-        if (true === $this->preferLowest) {
+        if ($this->preferLowest) {
             return;
         }
 
@@ -103,32 +72,26 @@ final class VersionsCheckPlugin implements PluginInterface, EventSubscriberInter
         return $this->options;
     }
 
-    /**
-     * Tries to get plugin options and resolves them.
-     *
-     * @return array
-     */
-    private function resolveOptions()
+    private function resolveOptions(): array
     {
         $pluginConfig = $this->composer->getConfig()
             ? $this->composer->getConfig()->get('sllh-composer-versions-check')
-            : null
-        ;
+            : null;
 
-        $options = array(
+        $options = [
             'show-links' => false,
-        );
+        ];
 
-        if (null === $pluginConfig) {
+        if ($pluginConfig === null) {
             return $options;
         }
 
-        $options['show-links'] = isset($pluginConfig['show-links']) ? (bool) $pluginConfig['show-links'] : $options['show-links'];
+        $options['show-links'] = $pluginConfig['show-links'] ?? $options['show-links'];
 
         return $options;
     }
 
-    private function checkVersions(RepositoryManager $repositoryManager, RootPackageInterface $rootPackage)
+    private function checkVersions(RepositoryManager $repositoryManager, RootPackageInterface $rootPackage): void
     {
         foreach ($repositoryManager->getRepositories() as $repository) {
             $this->versionsCheck->checkPackages(

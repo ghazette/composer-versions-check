@@ -30,7 +30,9 @@ final class VersionsCheckPlugin implements PluginInterface, EventSubscriberInter
         $this->io = $io;
         $this->versionsCheck = new VersionsCheck();
         $this->options = $this->resolveOptions();
+        $this->preferLowest = false;
     }
+
 
     public function deactivate(Composer $composer, IOInterface $io): void
     {
